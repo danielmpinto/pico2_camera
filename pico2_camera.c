@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "ov7670_driver"
+#include <ov7670.h>
 
 int main()
 {

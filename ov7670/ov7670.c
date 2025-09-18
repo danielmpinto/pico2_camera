@@ -16,3 +16,5 @@ int add(int a, int b){
 
 double area(double radius){
    double areaofcircle = PI*pow(radius, 2);
+   return areaofcircle;
+}
