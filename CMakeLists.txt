@@ -45,14 +45,11 @@ pico_enable_stdio_uart(pico2_camera 1)
 pico_enable_stdio_usb(pico2_camera 0)
 
 
-add_library(ov7670
-ov7670/ov7670.c
-)
+
 
 # Add the standard library to the build
 target_link_libraries(pico2_camera
         pico_stdlib
-        ov7670
         )
 
 
@@ -60,8 +57,9 @@ target_link_libraries(pico2_camera
 # Add the standard include files to the build
 target_include_directories(pico2_camera PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/ov7670
 )
+
+add_subdirectory(ov7670)
 
 pico_add_extra_outputs(pico2_camera)
 

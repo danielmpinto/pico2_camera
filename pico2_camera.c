@@ -9,5 +9,6 @@ int main()
     while (true) {
         printf("Hello, world!\n");
         sleep_ms(1000);
+        add(1, 2);
     }
 }
