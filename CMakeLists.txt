@@ -50,6 +50,7 @@ pico_enable_stdio_usb(pico2_camera 0)
 # Add the standard library to the build
 target_link_libraries(pico2_camera
         pico_stdlib
+        ov7670
         )
 
 
