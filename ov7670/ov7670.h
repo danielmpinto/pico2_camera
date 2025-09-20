@@ -2,7 +2,7 @@
 //define OV7670_h
 
 
-
+#define  OV7670_ADDR               0x21  // device addr
 
 #define _OV7670_REG_GAIN           0x00  // AGC gain bits 7:0 (9:8 in VREF)
 #define _OV7670_REG_BLUE           0x01  // AWB blue channel gain
@@ -428,8 +428,11 @@
 
 // //endif
 
+int _i2c_init();
 
-int product_version(int x);
+int _product_version();
+
+int _product_id();
 
 int _write_register(int OV7670_I2C_ADDR, int OV7670_I2C_VALUE);
 

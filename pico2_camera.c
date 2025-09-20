@@ -9,7 +9,8 @@ int main()
     _i2c_init();
     
     while (true) {
-        printf("Hello, i2c!\n");
         sleep_ms(1000);
+        printf("Product ID Number : %x\n",_product_id());
+        printf("Product Version Number : %x\n",_product_version());
     }
 }

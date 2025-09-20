@@ -10,8 +10,12 @@
 
 
 
-int product_version(int x){
+int _product_version(){
    return _read_register(_OV7670_REG_VER);
+} 
+
+int _product_id(){
+   return _read_register(_OV7670_REG_PID);
 } 
 
 
@@ -23,13 +27,13 @@ int _write_register(int OV7670_I2C_ADDR, int OV7670_I2C_VALUE){
 }
 
 
-int _read_register(int OV7670_I2C_ADDR){
-   uint8_t reg_addr = OV7670_I2C_ADDR;
+int _read_register(int reg){
+   uint8_t reg_addr = reg;
    uint8_t buf[6];
    // i2c write blocking
-   i2c_write_blocking(i2c_default, OV7670_I2C_ADDR, &reg_addr, 2, false);
+   i2c_write_blocking(i2c_default, OV7670_ADDR, &reg_addr, 1, true);
    // i2c reads 
-   i2c_read_blocking(i2c_default, OV7670_I2C_ADDR, buf, 6, false);
+   i2c_read_blocking(i2c_default, OV7670_ADDR, buf, 1, false);
 
    return buf[0];
 
