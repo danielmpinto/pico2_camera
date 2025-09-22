@@ -9,7 +9,8 @@
 
 #define MCLK_FREQUENCY             16  // MHz
 
-#define MCLK_PIN                   20  // 
+#define  OV7670_MCLK_PIN           20  // Pin for MCLK
+#define  OV7670_RESET_PIN          10  // Pin for RESET
 
 #define  OV7670_ADDR               0x21  // ov7670 address
 
@@ -447,7 +448,7 @@ int ov7670_write_register(uint8_t OV7670_I2C_ADDR, uint8_t OV7670_I2C_VALUE);
 
 int ov7670_read_register(uint8_t OV7670_I2C_ADDR);
 
-
+int ov7670_register_test(void);
 
 
 #endif

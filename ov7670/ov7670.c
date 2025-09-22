@@ -42,27 +42,28 @@ int ov7670_read_register(uint8_t reg){
 }
 
 
+
+
 int ov7670_config(){
 
-      // mclk clocking temp
-   gpio_set_function(MCLK_PIN, GPIO_FUNC_PWM);
-   uint slice_num = pwm_gpio_to_slice_num(MCLK_PIN);
-   uint channel = pwm_gpio_to_channel(MCLK_PIN);
+   // mclk clocking generation 16MHz
+   gpio_set_function(OV7670_MCLK_PIN, GPIO_FUNC_PWM);
+   uint slice_num = pwm_gpio_to_slice_num(OV7670_MCLK_PIN);
+   uint channel = pwm_gpio_to_channel(OV7670_MCLK_PIN);
 
 
    uint32_t f_sys = clock_get_hz(clk_sys);
 
+   // calc pwm
    uint32_t wrap = (f_sys / 16000000) - 1;  // 16 MHz
-
    pwm_set_clkdiv(slice_num, 1.0f)   ;
    pwm_set_wrap(slice_num, wrap);
    pwm_set_chan_level(slice_num, channel, (wrap + 1) / 2);
 
+   // enables pwm
    pwm_set_enabled(slice_num, true);
 
-   // clock testado gerando 16 mhz 
-
-
+   // mclk clocking generation 16MHz - ok
 
 
    // i2c config 
@@ -71,28 +72,31 @@ int ov7670_config(){
    gpio_set_function(_OV7670_I2C_SCL_PIN, GPIO_FUNC_I2C);
    gpio_pull_up(_OV7670_I2C_SDA_PIN);
    gpio_pull_up(_OV7670_I2C_SCL_PIN);
+   // i2c config - ok
 
-      //reseta camera
-   // gpio_init(10);
-   // gpio_set_dir(10, GPIO_OUT);
+   // camera reset
+   gpio_init(OV7670_RESET_PIN);
+   gpio_set_dir(OV7670_RESET_PIN, GPIO_OUT);
 
-   // gpio_put(10, 0);
-   // sleep_ms(1);
-   // gpio_put(10, 1);
+   gpio_put(OV7670_RESET_PIN, 0);
+   sleep_ms(1);
+   gpio_put(OV7670_RESET_PIN, 1);
+   // reseta camera - ok
 
-   
-   for (uint8_t addr = 0; addr < 128; addr++) {
-    int ret = i2c_write_blocking(i2c0, addr, NULL, 0, false);
-    if (ret >= 0) {
-        printf("Dispositivo encontrado no endereco 0x%02x\n", addr);
-    }
-
-
+   // give time before testing registers
+   sleep_ms(100);
+   return 1;
 }
 
-
-
-
-
-   return 1;
+// test camera basic registers
+int ov7670_register_test(){
+   int pid = ov7670_product_id();
+   int ver = ov7670_product_version();
+   printf("Product ID Number : %x\n",pid);
+   printf("Product Version Number : %x\n",ver);
+   if (pid == 0x76){
+      return 1;
+   } else {
+      return 0;
+   }
 }

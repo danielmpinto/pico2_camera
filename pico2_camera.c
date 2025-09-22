@@ -4,6 +4,8 @@
 #include "hardware/clocks.h"
 
 
+// use 4.7Kohm pullups on SDA and SCL lines
+
 
 
 
@@ -11,9 +13,9 @@ int main()
 {
     stdio_init_all();
     ov7670_config();
+    ov7670_register_test();
     while (true) {
         sleep_ms(1000);
-        printf("Product ID Number : %x\n",ov7670_product_id());
-        printf("Product Version Number : %x\n",ov7670_product_version());
+
     }
 }
