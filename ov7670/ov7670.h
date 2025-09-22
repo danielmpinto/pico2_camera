@@ -1,8 +1,17 @@
 //ifndef OV7670_h
 //define OV7670_h
+#ifndef OV7670_H
+#define OV7670_H
 
 
-#define  OV7670_ADDR               0x21  // device addr
+#define _OV7670_I2C_SDA_PIN        8
+#define _OV7670_I2C_SCL_PIN        9
+
+#define MCLK_FREQUENCY             16  // MHz
+
+#define MCLK_PIN                   20  // 
+
+#define  OV7670_ADDR               0x21  // ov7670 address
 
 #define _OV7670_REG_GAIN           0x00  // AGC gain bits 7:0 (9:8 in VREF)
 #define _OV7670_REG_BLUE           0x01  // AWB blue channel gain
@@ -428,12 +437,17 @@
 
 // //endif
 
-int _i2c_init();
+int ov7670_config(void);
 
-int _product_version();
+int ov7670_product_version(void);
 
-int _product_id();
+int ov7670_product_id(void);
 
-int _write_register(int OV7670_I2C_ADDR, int OV7670_I2C_VALUE);
+int ov7670_write_register(uint8_t OV7670_I2C_ADDR, uint8_t OV7670_I2C_VALUE);
 
-int _read_register(int OV7670_I2C_ADDR);
+int ov7670_read_register(uint8_t OV7670_I2C_ADDR);
+
+
+
+
+#endif

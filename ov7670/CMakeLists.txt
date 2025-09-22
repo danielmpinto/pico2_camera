@@ -10,5 +10,5 @@ target_include_directories(ov7670 PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
-target_link_libraries(ov7670 pico_stdlib hardware_i2c)
+target_link_libraries(ov7670 pico_stdlib hardware_i2c hardware_pwm hardware_clocks)
 

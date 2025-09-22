@@ -41,6 +41,9 @@
     "todo-tree.tree.showCountsInTree": true,
     "files.associations": {
         "ov7670.h": "c",
-        "i2c.h": "c"
+        "i2c.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "clocks.h": "c"
     }
 }
