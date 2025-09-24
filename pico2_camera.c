@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "ov7670.h"
-#include "hardware/clocks.h"
 
-
+// observations:
 // use 4.7Kohm pullups on SDA and SCL lines
 
 
@@ -16,6 +15,7 @@ int main()
     ov7670_register_test();
     while (true) {
         sleep_ms(1000);
+    ov7670_register_test();
 
     }
 }

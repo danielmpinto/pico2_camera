@@ -44,6 +44,8 @@
         "i2c.h": "c",
         "stdlib.h": "c",
         "stdio.h": "c",
-        "clocks.h": "c"
+        "clocks.h": "c",
+        "pwm.h": "c",
+        "cstdint": "c"
     }
 }
