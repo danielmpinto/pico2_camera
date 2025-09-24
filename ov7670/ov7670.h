@@ -3,6 +3,18 @@
 
 
 
+
+// OV7670 pin definitions
+#define OV7670_MCLK_PIN           20  // Pin for MCLK
+#define OV7670_RESET_PIN          10  // Pin for RESET
+#define OV7670_MCLK_PIN 20  // Enable OV7670 XCLK pin control
+#define OV7670_PCLK_PIN 11  // Enable OV7670 PCLK pin control
+#define OV7670_HREF_PIN  21  // Enable OV7670 HREF pin control
+#define OV7670_VSYNC_PIN 7  // Enable OV7670 VSYNC pin control
+#define OV7670_DATA_PIN {12,13,14,15,16,17,18, 19}   // Enable OV7670 DATA pins control
+#define OV7670_PWDN_PIN -1  // Pin for PWDN, -1 if not used
+
+
 // Supported color formats
 #define OV7670_COLOR_RGB            0  //RGB565 big-endian
 #define OV7670_COLOR_YUV            1  //YUV/YCbCr 422 big-endian
@@ -41,9 +53,7 @@
 // OV7670 MCLK frequency
 #define OV7670_MCLK_FREQUENCY             16  // MCLK frequention selection in MHz
 
-// OV7670 pin definitions
-#define  OV7670_MCLK_PIN           20  // Pin for MCLK
-#define  OV7670_RESET_PIN          10  // Pin for RESET
+
 
 
 // start ov7670 register defines
@@ -234,7 +244,15 @@
 #define _OV7670_REG_LAST = _OV7670_REG_SATCTR  // Maximum register address
 // -- // end ov7670 register defines
 
+int ov7670_pins_definition(void);
 
+int ov7670_mclk_config();
+
+int ov7670_i2c_config();
+
+int ov7670_reset();
+
+int ov7670_shutdown();
 
 int ov7670_config(void);
 
@@ -242,13 +260,15 @@ int ov7670_product_version(void);
 
 int ov7670_product_id(void);
 
-int ov7670_write_register(uint8_t OV7670_I2C_ADDR, uint8_t OV7670_I2C_VALUE);
+int ov7670_write_register(uint8_t OV7670_I2C_REG_ADDR, uint8_t OV7670_I2C_REG_VALUE);
 
 int ov7670_read_register(uint8_t OV7670_I2C_ADDR);
 
 int ov7670_register_test(void);
 
-int ov7670_register_writelist();
+int ov7670_register_writelist(void);
+
+int ov7670_frame_control(uint8_t size, uint16_t vstart, uint16_t hstart, uint8_t edge_offset, uint8_t pclk_delay);
 
 
 #endif

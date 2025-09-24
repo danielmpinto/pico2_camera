@@ -46,6 +46,11 @@
         "stdio.h": "c",
         "clocks.h": "c",
         "pwm.h": "c",
-        "cstdint": "c"
+        "cstdint": "c",
+        "array": "c",
+        "string_view": "c",
+        "format": "c",
+        "initializer_list": "c",
+        "span": "c"
     }
 }

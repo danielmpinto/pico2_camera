@@ -9,24 +9,25 @@
 
 
 
+
 // # ov7670_rgb array
 // Manual output format, RGB, use RGB565 and full 0-255 output range
-uint8_t _OV7670_rgb[] = {    
+const uint8_t _OV7670_rgb[] = {    
         _OV7670_REG_COM7,
         _OV7670_COM7_RGB,
         _OV7670_REG_RGB444,
         0x00,
         _OV7670_REG_COM15,
-        //  _OV7670_COM15_RGB565 | _OV7670_COM15_R00FF,
+          _OV7670_COM15_RGB565 | _OV7670_COM15_R00FF
 };
 
-// # ov7670_rgb array
+// # ov7670_yuv array
 // Manual output format, YUV, use full output range
-uint8_t _OV7670_yuv[] = {
+const uint8_t _OV7670_yuv[] = {
         _OV7670_REG_COM7,
         _OV7670_COM7_YUV,
         _OV7670_REG_COM15,
-        _OV7670_COM15_R00FF,
+        _OV7670_COM15_R00FF
 }; 
 
 uint8_t _OV7670_inits[] = {
@@ -262,10 +263,13 @@ int ov7670_product_id(){
 } 
 
 // write a register to ov7670
-int ov7670_write_register(uint8_t OV7670_I2C_ADDR, uint8_t OV7670_I2C_VALUE){
+int ov7670_write_register(uint8_t OV7670_I2C_REG_ADDR, uint8_t OV7670_I2C_REG_VALUE){
    // i2c write blocking
-   uint8_t value = OV7670_I2C_VALUE;
-   i2c_write_blocking(i2c0, OV7670_I2C_ADDR, &value, 2, false);
+   uint8_t buf[2];
+   buf[0] = OV7670_I2C_REG_ADDR;
+   buf[1] = OV7670_I2C_REG_VALUE;
+   i2c_write_blocking(i2c0, OV7670_ADDR, buf, 1, false);
+   // i2c write blocking -- ok
    return 1;
 }
 
@@ -283,15 +287,21 @@ int ov7670_read_register(uint8_t reg){
 
 }
 
-// configs camera, including i2c, reset and mclk pins
-int ov7670_config(){
 
+int ov7670_pins_config(){
+   
+
+}
+
+
+int ov7670_mclk_config(){
+
+   // define pins
    // mclk clocking generation 16MHz
    gpio_set_function(OV7670_MCLK_PIN, GPIO_FUNC_PWM);
    uint slice_num = pwm_gpio_to_slice_num(OV7670_MCLK_PIN);
    uint channel = pwm_gpio_to_channel(OV7670_MCLK_PIN);
-
-
+   // get system clock frequency
    uint32_t f_sys = clock_get_hz(clk_sys);
 
    // calc pwm
@@ -304,8 +314,10 @@ int ov7670_config(){
    pwm_set_enabled(slice_num, true);
 
    // mclk clocking generation 16MHz - ok
+   return 1;
+}
 
-
+int ov7670_i2c_config(){
    // i2c config 
    i2c_init(i2c0, 100 * 1000);
    gpio_set_function(_OV7670_I2C_SDA_PIN, GPIO_FUNC_I2C);
@@ -313,7 +325,10 @@ int ov7670_config(){
    gpio_pull_up(_OV7670_I2C_SDA_PIN);
    gpio_pull_up(_OV7670_I2C_SCL_PIN);
    // i2c config - ok
+   return 1;
+}
 
+int ov7670_reset(){
    // reset pin
    gpio_init(OV7670_RESET_PIN);
    gpio_set_dir(OV7670_RESET_PIN, GPIO_OUT);
@@ -322,9 +337,32 @@ int ov7670_config(){
    sleep_ms(1);
    gpio_put(OV7670_RESET_PIN, 1);
    // reseta camera - ok
+}
 
+int ov7670_shutdown(){
+   // SHUTDOWN camera
+   gpio_init(OV7670_PWDN_PIN);
+   gpio_set_dir(OV7670_PWDN_PIN, GPIO_OUT);
+
+   gpio_put(OV7670_PWDN_PIN, 1);
+   sleep_ms(1);
+   gpio_put(OV7670_PWDN_PIN, 0);
+   // SHUTDOWN camera - ok
+}
+
+// configs camera, including i2c, reset and mclk pins
+int ov7670_config(){
+   ov7670_shutdown();
+   ov7670_pins_config();
+   ov7670_mclk_config();
+   ov7670_i2c_config();
+   ov7670_reset();
    // give time before testing registers
    sleep_ms(100);
+   ov7670_register_test();
+   ov7670_register_writelist();
+
+
    return 1;
 }
 
@@ -341,7 +379,111 @@ int ov7670_register_test(){
    }
 }
 
-int ov7670_register_writelist(){
-   printf("Writing init registers...\n");
 
+// writes many values in registers at the same time
+int ov7670_register_writelist(){
+   int array_size = sizeof(_OV7670_inits) / sizeof(_OV7670_inits[0]);
+   printf("Total registers to write: %d\n", array_size);
+   printf("Writing init registers...\n");
+   for (int i = 0; i < array_size; i+=2 ){
+      uint8_t reg = _OV7670_inits[i];
+      uint8_t val = _OV7670_inits[i+1];
+      if(i == 0){
+         printf("Reg: 0x%02X, Val: 0x%02X\n...\n...\n...\n", reg, val);
+      } else if (i == 192){
+         printf("Reg: 0x%02X, Val: 0x%02X\n", reg, val);
+      }
+      
+      ov7670_write_register(reg, val);
+      sleep_ms(1);
+   }
+   printf("Setup registers finished...\n");
+
+}
+
+
+// int ov7670_size(){
+//    ov7670_frame_control();
+// }
+
+int ov7670_frame_control(uint8_t size, uint16_t vstart, uint16_t hstart, uint8_t edge_offset, uint8_t pclk_delay){
+   // set frame control
+   
+   uint8_t value;
+   if (size > OV7670_SIZE_DIV1) {
+         value = _OV7670_COM3_DCWEN;} 
+      else {
+         value = 0;
+   }
+
+   if (size == OV7670_SIZE_DIV16){
+      value |= _OV7670_COM3_SCALEEN;
+   }
+   ov7670_write_register(_OV7670_REG_COM3, value);
+
+
+   if (size > OV7670_SIZE_DIV1) {
+         value = (0x18 + size);} 
+      else {
+         value = 0;
+   }
+   ov7670_write_register(_OV7670_REG_COM14, value);
+
+
+   if (size <= OV7670_SIZE_DIV8) {
+         value = size;} 
+      else {
+         value = OV7670_SIZE_DIV8;
+   }
+   ov7670_write_register(_OV7670_REG_SCALING_DCWCTR, (value * 0x11));
+
+   // Pixel clock divider if sub-VGA
+   if (size > OV7670_SIZE_DIV1) {
+         value = (0xF0 + size);} 
+      else {
+         value = 0x08;
+   }
+   ov7670_write_register(_OV7670_REG_SCALING_PCLK_DIV, value);
+
+
+   // Apply 0.5 digital zoom at 1:16 size (others are downsample only)
+   // Pixel clock divider if sub-VGA
+   if (size == OV7670_SIZE_DIV16) {
+         value = 0x40;} 
+      else {
+         value = 0x20;
+   }
+
+
+
+   // Read current SCALING_XSC and SCALING_YSC register values because
+   // test pattern settings are also stored in those registers and we
+   // don't want to corrupt anything there
+   uint8_t xsc = ov7670_read_register(_OV7670_REG_SCALING_XSC);
+   uint8_t ysc = ov7670_read_register(_OV7670_REG_SCALING_YSC);
+   xsc = (xsc & 0x80) | value;  // Modify only scaling bits (not test pattern)
+   ysc = (ysc & 0x80) | value;
+
+   // Write modified result back to SCALING_XSC and SCALING_YSC
+   ov7670_write_register(_OV7670_REG_SCALING_XSC, xsc);
+   ov7670_write_register(_OV7670_REG_SCALING_YSC, ysc);
+
+   // Window size is scattered across multiple registers.
+   // Horiz/vert stops can be automatically calc'd from starts.
+   uint16_t vstop = vstart + 480;
+   uint16_t hstop = (hstart + 640) % 784;
+
+   ov7670_write_register(_OV7670_REG_HSTART, hstart >> 3);
+   ov7670_write_register(_OV7670_REG_HSTOP, hstop >> 3);
+   ov7670_write_register(
+         _OV7670_REG_HREF,
+         (edge_offset << 6) | ((hstop & 0b111) << 3) | (hstart & 0b111)
+   );
+
+   ov7670_write_register(_OV7670_REG_VSTART, vstart >> 2);
+   ov7670_write_register(_OV7670_REG_VSTOP, vstop >> 2);
+   ov7670_write_register(_OV7670_REG_VREF, ((vstop & 0b11) << 2) | (vstart & 0b11));
+   ov7670_write_register(_OV7670_REG_SCALING_PCLK_DELAY, pclk_delay);
+
+   return 1;
 }
