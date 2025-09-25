@@ -6,7 +6,20 @@
 // use 4.7Kohm pullups on SDA and SCL lines
 
 
+typedef struct {
+    uint8_t size;
+    uint8_t colorspace;
+    bool flip_y;
+    uint8_t test_pattern;
+    uint16_t width;
+    uint16_t height;
+} ov7670_config_t;
 
+
+ov7670_config_t cam;
+
+#define WIDTH 40
+#define HEIGHT 30
 
 int main()
 {
@@ -15,28 +28,42 @@ int main()
     ov7670_shutdown();
     ov7670_config();
 
-    // cam.size = OV7670_SIZE_DIV16;
-    // cam.colorspace = OV7670_COLOR_YUV;
-    // cam.flip_y = True;
-    // # cam.test_pattern = OV7670_TEST_PATTERN_COLOR_BAR_FADE;
+    // Configuração da câmera
+    cam.size = OV7670_SIZE_DIV16;
+    cam.colorspace = OV7670_COLOR_YUV;
+    cam.flip_y = true;
+    // cam.test_pattern = OV7670_TEST_PATTERN_COLOR_BAR_FADE; // opcional
 
-    // buf = bytearray(2 * cam.width * cam.height);
-    // char string[] = " .:-=+*#%@";
+    // Buffers estáticos (máximo: 640x480 RGB565 = 2 * 640 * 480 = 614400 bytes)
+    static uint8_t buf[2 * WIDTH * HEIGHT];   // buffer principal
+    static uint8_t row[2 * WIDTH];         // buffer para uma linha
 
-    // width = cam.width;
-    // row = bytearray(2 * width);
+    // Tabela de caracteres para ASCII-art
+    const char chars[] = " .:-=+*#%@";
 
-    // sys.stdout.write("\033[2J");
+    // Uso
+    uint16_t width  = cam_width(cam.size);
+    uint16_t height = cam_height(cam.size);
 
+    // Limpar terminal (sequência ANSI)
+    printf("\033[2J");
     while (true) {
-        // cam.capture(buf)
-        // for j in range(cam.height):
-        //     sys.stdout.write(f"\033[{j}H")
-        //     for i in range(cam.width):
-        //         row[i * 2] = row[i * 2 + 1] = chars[buf[2 * (width * j + i)] * (len(chars) - 1) // 255]
-        //     sys.stdout.write(row)
-        //     sys.stdout.write("\033[K")
-        // sys.stdout.write("\033[J")
-        sleep_ms(50);
+        ov7670_capture(buf, sizeof(buf)); // captura um frame
+
+    for (int j = 0; j < HEIGHT; j++) {
+        printf("\033[%d;1H", j + 1); // move cursor
+
+        for (int i = 0; i < WIDTH; i++) {
+            uint8_t y = buf[2 * (WIDTH * j + i)];  // luminância
+            int idx = (y * (sizeof(chars) - 2)) / 255;
+            row[i] = chars[idx];
+        }
+
+        row[WIDTH] = '\0'; // termina string
+        printf("%s\033[K", row);
+    }
+
+    printf("\033[J");
+    sleep_ms(50);
     }
 }

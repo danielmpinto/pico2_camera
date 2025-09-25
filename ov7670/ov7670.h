@@ -270,5 +270,12 @@ int ov7670_register_writelist(void);
 
 int ov7670_frame_control(uint8_t size, uint16_t vstart, uint16_t hstart, uint8_t edge_offset, uint8_t pclk_delay);
 
+uint16_t cam_width(uint8_t size);
+
+uint16_t cam_height(uint8_t size);
+
+int ov7670_capture(uint8_t *buf, uint32_t length);
+
+uint8_t ov7670_read_bus(void);
 
 #endif

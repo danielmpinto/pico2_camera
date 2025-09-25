@@ -9,7 +9,6 @@
 
 
 
-
 // # ov7670_rgb array
 // Manual output format, RGB, use RGB565 and full 0-255 output range
 const uint8_t _OV7670_rgb[] = {    
@@ -256,11 +255,13 @@ int _window[5][4] = {
 int ov7670_product_version(){
    return ov7670_read_register(_OV7670_REG_VER);
 } 
+//
 
 // get product id from camera
 int ov7670_product_id(){
    return ov7670_read_register(_OV7670_REG_PID);
 } 
+// product_id -- ok
 
 // write a register to ov7670
 int ov7670_write_register(uint8_t OV7670_I2C_REG_ADDR, uint8_t OV7670_I2C_REG_VALUE){
@@ -268,10 +269,11 @@ int ov7670_write_register(uint8_t OV7670_I2C_REG_ADDR, uint8_t OV7670_I2C_REG_VA
    uint8_t buf[2];
    buf[0] = OV7670_I2C_REG_ADDR;
    buf[1] = OV7670_I2C_REG_VALUE;
-   i2c_write_blocking(i2c0, OV7670_ADDR, buf, 1, false);
+   i2c_write_blocking(i2c0, OV7670_ADDR, buf, 2, false);
    // i2c write blocking -- ok
    return 1;
 }
+// write_register -- ok
 
 
 // verified
@@ -286,11 +288,26 @@ int ov7670_read_register(uint8_t reg){
    return buf;
 
 }
+// read_register -- ok
 
 
-int ov7670_pins_config(){
-   
+int ov7670_pins_config() {
+    int data_pins[] = {12,13,14,15,16,17,18,19};
+    for (int i = 0; i < 8; i++) {
+        gpio_init(data_pins[i]);
+        gpio_set_dir(data_pins[i], GPIO_IN);
+    }
 
+    gpio_init(OV7670_PCLK_PIN);
+    gpio_set_dir(OV7670_PCLK_PIN, GPIO_IN);
+
+    gpio_init(OV7670_HREF_PIN);
+    gpio_set_dir(OV7670_HREF_PIN, GPIO_IN);
+
+    gpio_init(OV7670_VSYNC_PIN);
+    gpio_set_dir(OV7670_VSYNC_PIN, GPIO_IN);
+
+    return 1;
 }
 
 
@@ -400,12 +417,10 @@ int ov7670_register_writelist(){
    printf("Setup registers finished...\n");
 
 }
+// register_writelist -- ok
 
 
-// int ov7670_size(){
-//    ov7670_frame_control();
-// }
-
+// frame_control -- ok
 int ov7670_frame_control(uint8_t size, uint16_t vstart, uint16_t hstart, uint8_t edge_offset, uint8_t pclk_delay){
    // set frame control
    
@@ -486,4 +501,68 @@ int ov7670_frame_control(uint8_t size, uint16_t vstart, uint16_t hstart, uint8_t
    ov7670_write_register(_OV7670_REG_SCALING_PCLK_DELAY, pclk_delay);
 
    return 1;
+}
+// frame_control -- ok
+
+
+// int size(int size){
+//    ov7670_frame_control(_window[size]);
+//    return 1;
+// }
+
+
+// int width(size){
+//    return 640 >> size;
+// }
+
+
+// int _set_flip (){
+//    uint8_t mvfp = ov7670_read_register(_OV7670_REG_MVFP);
+
+// }
+
+// Funções auxiliares para largura/altura
+uint16_t cam_width(uint8_t size) {
+    return 640 >> size;  // divide por 2^size
+}
+
+uint16_t cam_height(uint8_t size) {
+    return 480 >> size;
+}
+
+// Leitura de 8 bits dos pinos de dados
+uint8_t ov7670_read_bus(void) {
+    uint32_t value = 0;
+    // Se você configurou os pinos D0..D7 em sequência, pode otimizar
+    value |= gpio_get(12) << 0;
+    value |= gpio_get(13) << 1;
+    value |= gpio_get(14) << 2;
+    value |= gpio_get(15) << 3;
+    value |= gpio_get(16) << 4;
+    value |= gpio_get(17) << 5;
+    value |= gpio_get(18) << 6;
+    value |= gpio_get(19) << 7;
+    return (uint8_t)value;
+}
+
+int ov7670_capture(uint8_t *buf, uint32_t length) {
+    uint32_t idx = 0;
+
+    // 1. Espera início do frame (VSYNC alto → baixo)
+    while (!gpio_get(OV7670_VSYNC_PIN));
+    while (gpio_get(OV7670_VSYNC_PIN));
+
+    // 2. Captura até preencher o buffer
+    while (idx < length) {
+        // Espera início de linha
+        while (!gpio_get(OV7670_HREF_PIN));
+
+        while (gpio_get(OV7670_HREF_PIN)) {
+            // Espera borda de subida do PCLK
+            while (!gpio_get(OV7670_PCLK_PIN));
+            buf[idx++] = ov7670_read_bus();
+            while (gpio_get(OV7670_PCLK_PIN)); // espera borda de descida
+        }
+    }
+    return 1; // sucesso
 }
