@@ -545,24 +545,3 @@ uint8_t ov7670_read_bus(void) {
     return (uint8_t)value;
 }
 
-int ov7670_capture(uint8_t *buf, uint32_t length) {
-    uint32_t idx = 0;
-
-    // 1. Espera início do frame (VSYNC alto → baixo)
-    while (!gpio_get(OV7670_VSYNC_PIN));
-    while (gpio_get(OV7670_VSYNC_PIN));
-
-    // 2. Captura até preencher o buffer
-    while (idx < length) {
-        // Espera início de linha
-        while (!gpio_get(OV7670_HREF_PIN));
-
-        while (gpio_get(OV7670_HREF_PIN)) {
-            // Espera borda de subida do PCLK
-            while (!gpio_get(OV7670_PCLK_PIN));
-            buf[idx++] = ov7670_read_bus();
-            while (gpio_get(OV7670_PCLK_PIN)); // espera borda de descida
-        }
-    }
-    return 1; // sucesso
-}

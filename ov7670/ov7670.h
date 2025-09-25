@@ -274,7 +274,6 @@ uint16_t cam_width(uint8_t size);
 
 uint16_t cam_height(uint8_t size);
 
-int ov7670_capture(uint8_t *buf, uint32_t length);
 
 uint8_t ov7670_read_bus(void);
 

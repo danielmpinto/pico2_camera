@@ -48,22 +48,7 @@ int main()
     // Limpar terminal (sequência ANSI)
     printf("\033[2J");
     while (true) {
-        ov7670_capture(buf, sizeof(buf)); // captura um frame
-
-    for (int j = 0; j < HEIGHT; j++) {
-        printf("\033[%d;1H", j + 1); // move cursor
-
-        for (int i = 0; i < WIDTH; i++) {
-            uint8_t y = buf[2 * (WIDTH * j + i)];  // luminância
-            int idx = (y * (sizeof(chars) - 2)) / 255;
-            row[i] = chars[idx];
-        }
-
-        row[WIDTH] = '\0'; // termina string
-        printf("%s\033[K", row);
-    }
-
-    printf("\033[J");
+        
     sleep_ms(50);
     }
 }
